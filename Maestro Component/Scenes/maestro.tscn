@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://d011trtcheu4c"]
+
+[node name="Maestro" type="AudioStreamPlayer2D"]
