@@ -125,3 +125,23 @@ func load_song(filePath:String):
 func clar_values():
 	hitObjects.clear()
 	timingPoints.clear()
+
+func sort_timing_points():
+	timingPoints.sort_custom(func(a,b): 
+		if a["time"] < b["time"]:
+			return -1
+		elif a["time"] > b["time"]:
+			return 1
+		else:
+			return 0
+)
+
+func sort_hit_objects():
+	hitObjects.sort_custom(func(a,b): 
+		if a["start"] < b["start"]:
+			return -1
+		elif a["start"] > b["start"]:
+			return 1
+		else:
+			return 0
+)
