@@ -1,24 +1,12 @@
 extends Node
 class_name File_Loader
 
-var tauFilePath:String
-
-var loadedSong:AudioStream
-var songLength:float
-var audioLeadIn:float
-
-var hitObjects:Array = []
-var timingPoints:Array = []
-
-var title:String
-var artist:String
-var creator:String
-var version:String
-
-var hpDrainRate:float
-var hitWindow:float
+var mapData:Map_Data
+func _ready() -> void:
+	mapData = get_parent()
 
 func load_map(folderPath:String):
+	mapData.unload_map()
 	var dir = DirAccess.open(folderPath)
 	if dir == null:
 		push_error("Could not open folder: "+folderPath)
@@ -29,11 +17,11 @@ func load_map(folderPath:String):
 	while fileName != "": # if there are no more files, filename will be ""
 		if not dir.current_is_dir():
 			if fileName.ends_with(".tau"):
-				tauFilePath = folderPath.path_join(fileName)
-				load_tau_file(tauFilePath, folderPath)
-
+				mapData.tauFilePath = folderPath.path_join(fileName)
+				load_tau_file(mapData.tauFilePath, folderPath)
 		fileName = dir.get_next()
 	dir.list_dir_end()
+	mapData.mapLoaded = true
 
 func load_tau_file(filePath:String, folderPath:String):
 	var file = FileAccess.open(filePath, FileAccess.READ)
@@ -61,34 +49,34 @@ func load_tau_file(filePath:String, folderPath:String):
 
 		if inGeneral:
 			if line.begins_with("AudioFileName:"):
-				var parts = line.split(":", false, 1) # split into [ "AudioFilePath", " song.mp3" ]
+				var parts = line.split(":", false, 1) # split into [ "AudioFileName", " song.mp3" ]
 				var audioFilePath = folderPath.path_join(parts[1].strip_edges())
 				load_song(audioFilePath)
 			elif line.begins_with("AudioLeadIn:"):
 				var parts = line.split(":", false, 1) # split into [ "AudioLeadIn", value]
-				audioLeadIn = float(parts[1])
+				mapData.audioLeadIn = float(parts[1])
 
 		if inMetadata:
 			if line.begins_with("Title:"):
 				var parts = line.split(":", false, 1)
-				title = parts[1].strip_edges()
+				mapData.title = parts[1].strip_edges()
 			elif line.begins_with("Artist:"):
 				var parts = line.split(":", false, 1)
-				artist = parts[1].strip_edges()
+				mapData.artist = parts[1].strip_edges()
 			elif line.begins_with("Creator:"):
 				var parts = line.split(":", false, 1)
-				creator = parts[1].strip_edges()
+				mapData.creator = parts[1].strip_edges()
 			elif line.begins_with("Version:"):
 				var parts = line.split(":", false, 1)
-				version = parts[1].strip_edges()
+				mapData.version = parts[1].strip_edges()
 
 		if inDifficulty:
 			if line.begins_with("HpDrainRate:"):
 				var parts = line.split(":", false, 1)
-				hpDrainRate = float(parts[1])
+				mapData.hpDrainRate = float(parts[1])
 			if line.begins_with("HitWindow:"):
 				var parts = line.split(":", false, 1)
-				hitWindow = float(parts[1])
+				mapData.hitWindow = float(parts[1])
 
 		# Format for timing points in the tau file: "bpm: value, time: value"
 		# Format for timing points as a dictionary: {"bpm" : value, "time" : value} 
@@ -99,7 +87,7 @@ func load_tau_file(filePath:String, folderPath:String):
 					"bpm": float(parts[0].substr(4).strip_edges()),
 					"time": float(parts[1].substr(5).strip_edges())
 				}
-				timingPoints.append(timingPoint)
+				mapData.timingPoints.append(timingPoint)
 
 		# Format for hit objects in the tau file: "Note start, Note end, Note type"
 		# Note type 0 is left and note type 1 is right
@@ -112,36 +100,12 @@ func load_tau_file(filePath:String, folderPath:String):
 					"end": float(parts[1].strip_edges()),
 					"type": int(parts[2].strip_edges())
 				}
-				hitObjects.append(hitObject)
+				mapData.hitObjects.append(hitObject)
 
 func load_song(filePath:String):
 	var stream = load(filePath)
-	if stream is AudioStream:
-		loadedSong = load(filePath)
-		songLength = loadedSong.get_length()
+	if stream is AudioStreamMP3 or stream is AudioStreamOggVorbis:
+		mapData.loadedSong = load(filePath)
+		mapData.songLength = mapData.loadedSong.get_length()
 	else:
-		push_error("Failed to load audio: " + filePath + "File is not audio file.")
-
-func clar_values():
-	hitObjects.clear()
-	timingPoints.clear()
-
-func sort_timing_points():
-	timingPoints.sort_custom(func(a,b): 
-		if a["time"] < b["time"]:
-			return -1
-		elif a["time"] > b["time"]:
-			return 1
-		else:
-			return 0
-)
-
-func sort_hit_objects():
-	hitObjects.sort_custom(func(a,b): 
-		if a["start"] < b["start"]:
-			return -1
-		elif a["start"] > b["start"]:
-			return 1
-		else:
-			return 0
-)
+		push_error("Failed to load audio: " + filePath + ". File must be .mp3 or .ogg.")
