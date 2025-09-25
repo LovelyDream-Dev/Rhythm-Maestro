@@ -16,7 +16,7 @@ func save_tau_data(filePath:String):
 
 	file.store_line("[General]")
 	file.store_line("AudioFileName: "+root.stream.resource_path.get_file())
-	file.store_line("AudioLeadIn: "+ str(mapData.audioLeadIn))
+	file.store_line("LeadInBeats: "+ str(mapData.LeadInBeats))
 	file.store_line("")
 	file.store_line("[Metadata]")
 	file.store_line("Title: "+mapData.title)

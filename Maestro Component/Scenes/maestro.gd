@@ -2,52 +2,80 @@ extends AudioStreamPlayer
 class_name Component_Maestro
 
 signal WHOLE_BEAT
-signal HALF_BEAT
-signal QUARTER_BEAT
-signal EIGTH_BEAT
-signal SIXTEENTH_BEAT
 
 @onready var fileLoader:File_Loader = $MapData/FileLoader
 @onready var fileSaver:File_Saver = $MapData/FileSaver
 @onready var mapData:Map_Data = $MapData
+@onready var metronome:AudioStreamPlayer = $Metronome
+
+@export var metronomeIsOn:bool = false
+@export var metronomeLeadInBeats:int
+@export var offset:float = 20.0
 
 var currentSongPosition:float
 var currentBPM:float
 
+var currentMeasure:int
+var beatsPerMeasure:int = 4
+
+var lastWholeBeat:float = -1.0
+var currentWholeBeat:float
+var nextWholeBeat:float
+
 var secondsPerBeat:float
 var beatsPerSecond:float
 
+var leadInTime:float
+var leadInBeats:float
+
+
+func _ready() -> void:
+	WHOLE_BEAT.connect(play_metronome)
+
 func _process(_delta: float) -> void:
+	offset/=1000
 	if !mapData.mapLoaded:
 		fileLoader.load_map("res://Maestro Component/TestMap")
-
-	set_song()
-	if !self.playing:
-		self.play()
 	else:
-		currentSongPosition = self.get_playback_position()
-		timing_points()
-		emit_beat_signals()
+		currentBPM = mapData.bpm
+		secondsPerBeat = mapData.secondsPerBeat
+		beatsPerSecond = mapData.beatsPerSecond
+		leadInBeats = mapData.leadInBeats
+		leadInTime = mapData.leadInTime
+		set_song()
+		if !self.playing:
+			self.play()
+		else:
+			currentSongPosition = self.get_playback_position() + offset
+			currentBPM = mapData.bpm
+			emit_beat_signals()
 
 # --- CUSTOM FUNCTIONS ---
-func timing_points():
-	if len(mapData.timingPoints) == 0:
-		return
-	mapData.sort_timing_points()
-	for tp in mapData.timingPoints:
-		var time = tp["time"]
-		var bpm = tp["bpm"]
-		if currentSongPosition >= time:
-			currentBPM = bpm
-			secondsPerBeat = 60.0/currentBPM
-			beatsPerSecond = currentBPM/60.0
 
 func set_song():
 	if mapData.loadedSong is AudioStream and !self.stream:
 		self.stream = mapData.loadedSong
 
 func emit_beat_signals():
-	var lastWholeBeat:float = 0
-	if (currentSongPosition - lastWholeBeat) > secondsPerBeat:
-		lastWholeBeat += secondsPerBeat
-		print("1")
+	currentWholeBeat = beatsPerSecond * currentSongPosition
+	while currentSongPosition >= nextWholeBeat:
+		var beatIndex = int(round(nextWholeBeat * beatsPerSecond))
+		WHOLE_BEAT.emit(beatIndex)
+		get_measure(beatIndex)
+		nextWholeBeat += secondsPerBeat
+
+func get_measure(beatIndex:int):
+	if beatIndex % beatsPerMeasure == 0:
+		currentMeasure = floor(currentWholeBeat) / beatsPerMeasure
+		
+
+func play_metronome(beatIndex:int):
+	if metronomeIsOn:
+		var offsetBeat:int = beatIndex - metronomeLeadInBeats
+		if offsetBeat > -1:
+			if offsetBeat % 4 == 0:
+				metronome.pitch_scale += 2.0/12.0
+				metronome.play()
+			else:
+				metronome.pitch_scale = 1.0
+				metronome.play()
