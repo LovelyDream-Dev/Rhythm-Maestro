@@ -1,11 +1,7 @@
 extends Node
-class_name File_Loader
+class_name FileLoader
 
-var mapData:Map_Data
-func _ready() -> void:
-	mapData = get_parent()
-
-func load_map(folderPath:String):
+func load_map(folderPath:String, mapData:MapDataContainer):
 	mapData.unload_map()
 	var dir = DirAccess.open(folderPath)
 	if dir == null:
@@ -18,12 +14,12 @@ func load_map(folderPath:String):
 		if not dir.current_is_dir():
 			if fileName.ends_with(".tau"):
 				mapData.tauFilePath = folderPath.path_join(fileName)
-				load_tau_file(mapData.tauFilePath, folderPath)
+				load_tau_file(mapData.tauFilePath, folderPath, mapData)
 		fileName = dir.get_next()
 	dir.list_dir_end()
 	mapData.mapLoaded = true
 
-func load_tau_file(filePath:String, folderPath:String):
+func load_tau_file(filePath:String, folderPath:String, mapData:MapDataContainer):
 	var file = FileAccess.open(filePath, FileAccess.READ)
 	if file == null:
 		push_error("Could not open .tau file: "+filePath)
@@ -51,7 +47,7 @@ func load_tau_file(filePath:String, folderPath:String):
 			if line.begins_with("AudioFileName:"):
 				var parts = line.split(":", false, 1) # split into [ "AudioFileName", " song.mp3" ]
 				var audioFilePath = folderPath.path_join(parts[1].strip_edges())
-				load_song(audioFilePath)
+				load_song(audioFilePath, mapData)
 			elif line.begins_with("LeadInBeats:"):
 				var parts = line.split(":", false, 1) # split into [ "LeadInBeats", value]
 				mapData.LeadInBeats = float(parts[1])
@@ -102,7 +98,16 @@ func load_tau_file(filePath:String, folderPath:String):
 				}
 				mapData.hitObjects.append(hitObject)
 
-func load_song(filePath:String):
+func init_new_map_folder(mapData:MapDataContainer):
+	var userPath:String = "D:/Users/Teren/Godot Projects/Rhythm Maestro/Maestro Component"
+	var mapFolderName:String = "Test LD Map"
+	var mapFolderPath:String = userPath.path_join(mapFolderName)
+	var err = DirAccess.make_dir_absolute(mapFolderPath)
+	if err != OK:
+		print("Debug")
+		return
+
+func load_song(filePath:String, mapData:MapDataContainer):
 	var stream = load(filePath)
 	if stream is AudioStreamMP3 or stream is AudioStreamOggVorbis:
 		mapData.loadedSong = load(filePath)

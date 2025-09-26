@@ -1,37 +1,54 @@
 extends Node
-class_name Map_Data
+class_name MapDataContainer
 
-var parent:Component_Maestro
+@onready var fileDialog:FileDialog = $FileDialog
+
+var fileLoader:FileLoader
+
+var parent:Maestro
 
 var mapLoaded:bool = false
 
 var tauFilePath:String
 
-var bpm:float
-var secondsPerBeat:float
-var beatsPerSecond:float
+var bpm:float = 0.0
+var secondsPerBeat:float = 0.0
+var beatsPerSecond:float = 0.0
 
 var loadedSong:AudioStream
-var songLength:float
-var leadInBeats:float
-var leadInTime:float
+var songLength:float = 0.0
+var leadInBeats:float = 0.0
+var leadInTime:float = 0.0
 
 var hitObjects:Array = []
 var timingPoints:Array = []
 
-var title:String
-var artist:String
-var creator:String
-var version:String
+var audioFileExtension:String = ""
+var title:String = ""
+var artist:String = ""
+var creator:String = ""
+var version:String = ""
 
-var hpDrainRate:float
-var hitWindow:float
+var hpDrainRate:float = 0.0
+var hitWindow:float = 0.0
 
 func _ready() -> void:
+	fileLoader = FileLoader.new()
 	parent = get_parent()
+	fileDialog.connect("file_selected", handle_loaded_file)
 
 func _process(_delta: float) -> void:
+	if parent.stream:
+		audioFileExtension = parent.stream.resource_path.get_file().get_extension().to_lower()
 	timing_points()
+
+# --- CUSTOM FUNCTIONS ---
+func select_audio_file_in_file_system():
+	fileDialog.current_dir = OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
+	fileDialog.popup_centered()
+
+func handle_loaded_file(path:String):
+	fileLoader.load_song(path, self)
 
 func timing_points():
 	if len(timingPoints) == 0:

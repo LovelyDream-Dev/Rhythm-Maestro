@@ -1,9 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://d011trtcheu4c"]
+[gd_scene load_steps=4 format=3 uid="uid://d011trtcheu4c"]
 
 [ext_resource type="Script" uid="uid://cos1bq2x1ak51" path="res://Maestro Component/Scenes/maestro.gd" id="1_f8jjr"]
-[ext_resource type="Script" uid="uid://cesvtrhynfusc" path="res://Maestro Component/Scenes/file_loader.gd" id="2_na6xd"]
-[ext_resource type="Script" uid="uid://7m0jf3g7gwrg" path="res://Maestro Component/Scenes/file_saver.gd" id="3_v1n8r"]
-[ext_resource type="Script" uid="uid://uuvxqgslof3d" path="res://Maestro Component/Scenes/data.gd" id="4_obsgy"]
+[ext_resource type="Script" uid="uid://uuvxqgslof3d" path="res://Maestro Component/Scenes/map_data_container.gd" id="4_obsgy"]
 [ext_resource type="AudioStream" uid="uid://cg0uq4wapiked" path="res://Maestro Component/Audio Files/Metronome Click.wav" id="5_rynj7"]
 
 [node name="Maestro" type="AudioStreamPlayer"]
@@ -12,14 +10,15 @@ metronomeIsOn = true
 metronomeLeadInBeats = 1
 offset = 30.0
 
-[node name="MapData" type="Node" parent="."]
+[node name="MapDataContainer" type="Node" parent="."]
 script = ExtResource("4_obsgy")
 
-[node name="FileLoader" type="Node" parent="MapData"]
-script = ExtResource("2_na6xd")
-
-[node name="FileSaver" type="Node" parent="MapData"]
-script = ExtResource("3_v1n8r")
+[node name="FileDialog" type="FileDialog" parent="MapDataContainer"]
+oversampling_override = 1.0
+title = "Open a File"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.mp3, *.ogg ; Audio Files")
 
 [node name="Metronome" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_rynj7")

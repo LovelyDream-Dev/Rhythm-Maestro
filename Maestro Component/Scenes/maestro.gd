@@ -1,16 +1,16 @@
 extends AudioStreamPlayer
-class_name Component_Maestro
+class_name Maestro
 
 signal WHOLE_BEAT
 
-@onready var fileLoader:File_Loader = $MapData/FileLoader
-@onready var fileSaver:File_Saver = $MapData/FileSaver
-@onready var mapData:Map_Data = $MapData
+@onready var mapData:MapDataContainer = $MapDataContainer
 @onready var metronome:AudioStreamPlayer = $Metronome
 
 @export var metronomeIsOn:bool = false
 @export var metronomeLeadInBeats:int
 @export var offset:float = 20.0
+
+var fileLoader:FileLoader
 
 var currentSongPosition:float
 var currentBPM:float
@@ -28,14 +28,17 @@ var beatsPerSecond:float
 var leadInTime:float
 var leadInBeats:float
 
-
 func _ready() -> void:
+	fileLoader = FileLoader.new()
 	WHOLE_BEAT.connect(play_metronome)
+	fileLoader.init_new_map_folder(mapData)
+	
 
 func _process(_delta: float) -> void:
 	offset/=1000
 	if !mapData.mapLoaded:
-		fileLoader.load_map("res://Maestro Component/TestMap")
+		#fileLoader.load_map("res://Maestro Component/TestMap", mapData)
+		pass
 	else:
 		currentBPM = mapData.bpm
 		secondsPerBeat = mapData.secondsPerBeat

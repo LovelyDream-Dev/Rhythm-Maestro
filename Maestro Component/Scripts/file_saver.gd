@@ -1,21 +1,14 @@
 extends Node
-class_name File_Saver
+class_name FileSaver
 
-var root:Component_Maestro
-var mapData:Map_Data
-
-func _ready() -> void:
-	mapData = get_parent()
-	root = mapData.get_parent()
-
-func save_tau_data(filePath:String):
+func save_tau_data(filePath:String, mapData:MapDataContainer):
 	var file = FileAccess.open(filePath, FileAccess.WRITE)
 	if file == null:
 		push_error("Could not open .tau file for writing: " + filePath)
 		return
 
 	file.store_line("[General]")
-	file.store_line("AudioFileName: "+root.stream.resource_path.get_file())
+	file.store_line("AudioFileName: audio."+mapData.audioFileExtension)
 	file.store_line("LeadInBeats: "+ str(mapData.LeadInBeats))
 	file.store_line("")
 	file.store_line("[Metadata]")
