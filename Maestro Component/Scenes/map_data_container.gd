@@ -51,8 +51,7 @@ func handle_loaded_file(path:String):
 	if ext not in ["mp3", "ogg"]:
 		push_error("Unsupported audio format: " + ext)
 		return
-	fileLoader.init_new_map(path, self, parent)
-	fileSaver.save_tau_data(fileLoader.mapFolderPath, self)
+	fileLoader.init_new_map(path, self, parent, parent.mutedSong)
 
 func timing_points():
 	if len(timingPoints) == 0:

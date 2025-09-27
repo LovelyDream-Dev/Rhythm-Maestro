@@ -5,10 +5,13 @@ signal WHOLE_BEAT
 
 @onready var mapData:MapDataContainer = $MapDataContainer
 @onready var metronome:AudioStreamPlayer = $Metronome
+@onready var mutedSong:AudioStreamPlayer = $MutedSong
 
 @export var metronomeIsOn:bool = false
 @export var metronomeLeadInBeats:int
-@export var offset:float = 20.0
+@export var offsetInMs:float = 30.0
+
+var offsetInSeconds:float
 
 var currentSongPosition:float
 var currentBPM:float
@@ -30,7 +33,7 @@ func _ready() -> void:
 	WHOLE_BEAT.connect(play_metronome)
 
 func _process(_delta: float) -> void:
-	offset/=1000
+	offsetInSeconds = offsetInMs/1000
 	if !mapData.mapLoaded:
 		#fileLoader.load_map("res://Maestro Component/TestMap", mapData)
 		pass
@@ -40,19 +43,22 @@ func _process(_delta: float) -> void:
 		beatsPerSecond = mapData.beatsPerSecond
 		leadInBeats = mapData.leadInBeats
 		leadInTime = mapData.leadInTime
-		set_song()
 		if !self.playing:
 			self.play()
 		else:
-			currentSongPosition = self.get_playback_position() + offset
+			currentSongPosition = mutedSong.get_playback_position()
 			currentBPM = mapData.bpm
 			emit_beat_signals()
 
 # --- CUSTOM FUNCTIONS ---
 
-func set_song():
-	if mapData.loadedSong is AudioStream and !self.stream:
-		self.stream = mapData.loadedSong
+func play_or_pause_songs():
+	if !mutedSong.playing and !self.playing:
+		mutedSong.play(currentSongPosition)
+		self.play(currentSongPosition + offsetInSeconds)
+	else:
+		mutedSong.stream_paused = true
+		self.stream_paused = true
 
 func emit_beat_signals():
 	currentWholeBeat = beatsPerSecond * currentSongPosition

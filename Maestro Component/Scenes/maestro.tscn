@@ -8,7 +8,6 @@
 script = ExtResource("1_f8jjr")
 metronomeIsOn = true
 metronomeLeadInBeats = 1
-offset = 30.0
 
 [node name="MapDataContainer" type="Node" parent="."]
 script = ExtResource("4_obsgy")
@@ -22,3 +21,6 @@ filters = PackedStringArray("*.mp3, *.ogg ; Audio Files")
 
 [node name="Metronome" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_rynj7")
+
+[node name="MutedSong" type="AudioStreamPlayer" parent="."]
+volume_db = -80.0
