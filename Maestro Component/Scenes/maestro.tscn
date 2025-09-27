@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://cos1bq2x1ak51" path="res://Maestro Component/Scenes/maestro.gd" id="1_f8jjr"]
 [ext_resource type="Script" uid="uid://uuvxqgslof3d" path="res://Maestro Component/Scenes/map_data_container.gd" id="4_obsgy"]
-[ext_resource type="AudioStream" uid="uid://cg0uq4wapiked" path="res://Maestro Component/Audio Files/Metronome Click.wav" id="5_rynj7"]
+
+[sub_resource type="AudioStreamPolyphonic" id="AudioStreamPolyphonic_na6xd"]
 
 [node name="Maestro" type="AudioStreamPlayer"]
 script = ExtResource("1_f8jjr")
@@ -20,7 +21,7 @@ access = 2
 filters = PackedStringArray("*.mp3, *.ogg ; Audio Files")
 
 [node name="Metronome" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("5_rynj7")
+stream = SubResource("AudioStreamPolyphonic_na6xd")
 
 [node name="MainSong" type="AudioStreamPlayer" parent="."]
 volume_db = -80.0

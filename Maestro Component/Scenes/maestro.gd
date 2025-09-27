@@ -14,6 +14,8 @@ var fileLoader = FileLoader.new()
 @export var metronomeLeadInBeats:int
 @export var offsetInMs:float = 30.0
 
+var polyphonicMetronome:AudioStreamPlaybackPolyphonic
+
 var mapLoaded:bool
 
 var offsetInSeconds:float
@@ -38,6 +40,7 @@ var leadInBeats:float
 
 func _ready() -> void:
 	OFFSET_WHOLE_BEAT.connect(play_metronome)
+	init_metronome()
 
 func _input(_event: InputEvent) -> void:
 	if Input.is_action_just_pressed("SPACE") and mapLoaded:
@@ -113,13 +116,16 @@ func get_measure(beatIndex:int):
 	if beatIndex % beatsPerMeasure == 0:
 		currentMeasure = floor(currentWholeBeat) / beatsPerMeasure
 
+func init_metronome():
+	if metronome.stream == null or not(metronome.stream is AudioStreamPolyphonic):
+		metronome.stream = AudioStreamPolyphonic.new()
+	metronome.play()
+	polyphonicMetronome = metronome.get_stream_playback()
+
 func play_metronome(beatIndex:int):
 	if metronomeIsOn:
 		var offsetBeat:int = beatIndex - metronomeLeadInBeats
 		if offsetBeat > -1:
-			if offsetBeat % 4 == 0:
-				metronome.pitch_scale += 2.0/12.0
-				metronome.play()
-			else:
-				metronome.pitch_scale = 1.0
-				metronome.play()
+			var pitch = 2.0 ** (2.0/12.0) if offsetBeat % 4 == 0 else 1.0
+			var metronomeStream = load("res://Maestro Component/Audio Files/Metronome Click.wav")
+			polyphonicMetronome.play_stream(metronomeStream, 0.0, 0.0, pitch)
