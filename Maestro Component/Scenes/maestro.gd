@@ -3,6 +3,8 @@ class_name Maestro
 
 signal WHOLE_BEAT
 
+var fileLoader = FileLoader.new()
+
 @onready var mapData:MapDataContainer = $MapDataContainer
 @onready var metronome:AudioStreamPlayer = $Metronome
 @onready var mutedSong:AudioStreamPlayer = $MutedSong
@@ -32,10 +34,14 @@ var leadInBeats:float
 func _ready() -> void:
 	WHOLE_BEAT.connect(play_metronome)
 
+func _input(_event: InputEvent) -> void:
+	if Input.is_action_just_pressed("ui_accept"):
+		pass
+
 func _process(_delta: float) -> void:
 	offsetInSeconds = offsetInMs/1000
 	if !mapData.mapLoaded:
-		#fileLoader.load_map("res://Maestro Component/TestMap", mapData)
+		fileLoader.load_map("res://Maestro Component/TestMap", mapData, self, mutedSong)
 		pass
 	else:
 		currentBPM = mapData.bpm
@@ -43,22 +49,29 @@ func _process(_delta: float) -> void:
 		beatsPerSecond = mapData.beatsPerSecond
 		leadInBeats = mapData.leadInBeats
 		leadInTime = mapData.leadInTime
-		if !self.playing:
-			self.play()
-		else:
+		currentBPM = mapData.bpm
+		if mutedSong.playing:
 			currentSongPosition = mutedSong.get_playback_position()
-			currentBPM = mapData.bpm
 			emit_beat_signals()
 
 # --- CUSTOM FUNCTIONS ---
 
-func play_or_pause_songs():
-	if !mutedSong.playing and !self.playing:
+
+func play_songs():
+	# Play the songs from the beginning, factoring in offset
+	if !mutedSong.playing and currentSongPosition == 0.0:
+		mutedSong.play()
+		await  get_tree().create_timer(offsetInSeconds).timeout
+		self.play()
+	# Play the muted song from the position it was paused at, and play the audible song from that position, but minus the offset. Ensure that the audible song doesnt start from a negative value with max().
+	elif !mutedSong.playing and currentSongPosition != 0.0:
 		mutedSong.play(currentSongPosition)
-		self.play(currentSongPosition + offsetInSeconds)
-	else:
-		mutedSong.stream_paused = true
-		self.stream_paused = true
+		self.play(max(currentSongPosition-offsetInSeconds, 0.0))
+
+func pause_songs():
+	if mutedSong.playing and self.playing:
+		mutedSong.stop()
+		self.stop()
 
 func emit_beat_signals():
 	currentWholeBeat = beatsPerSecond * currentSongPosition
@@ -71,7 +84,6 @@ func emit_beat_signals():
 func get_measure(beatIndex:int):
 	if beatIndex % beatsPerMeasure == 0:
 		currentMeasure = floor(currentWholeBeat) / beatsPerMeasure
-		
 
 func play_metronome(beatIndex:int):
 	if metronomeIsOn:
