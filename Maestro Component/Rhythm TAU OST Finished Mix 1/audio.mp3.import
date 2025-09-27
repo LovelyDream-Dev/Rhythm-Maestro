@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bt6iwn2hjecid"
+path="res://.godot/imported/audio.mp3-1e9722230c01c77135352f101c71a0ff.mp3str"
+
+[deps]
+
+source_file="res://Maestro Component/Rhythm TAU OST Finished Mix 1/audio.mp3"
+dest_files=["res://.godot/imported/audio.mp3-1e9722230c01c77135352f101c71a0ff.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

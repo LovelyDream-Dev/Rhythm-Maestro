@@ -8,6 +8,7 @@ var fileLoader:FileLoader
 var parent:Maestro
 
 var mapLoaded:bool = false
+var newEditorMapInit:bool = false
 
 var tauFilePath:String
 
@@ -15,7 +16,6 @@ var bpm:float = 0.0
 var secondsPerBeat:float = 0.0
 var beatsPerSecond:float = 0.0
 
-var loadedSong:AudioStream
 var songLength:float = 0.0
 var leadInBeats:float = 0.0
 var leadInTime:float = 0.0
@@ -36,10 +36,13 @@ func _ready() -> void:
 	fileLoader = FileLoader.new()
 	parent = get_parent()
 	fileDialog.connect("file_selected", handle_loaded_file)
+	select_audio_file_in_file_system()
 
 func _process(_delta: float) -> void:
 	if parent.stream:
-		audioFileExtension = parent.stream.resource_path.get_file().get_extension().to_lower()
+		if newEditorMapInit:
+			parent.play()
+			newEditorMapInit = false
 	timing_points()
 
 # --- CUSTOM FUNCTIONS ---
@@ -48,7 +51,11 @@ func select_audio_file_in_file_system():
 	fileDialog.popup_centered()
 
 func handle_loaded_file(path:String):
-	fileLoader.load_song(path, self)
+	var ext := path.get_extension().to_lower()
+	if ext not in ["mp3", "ogg"]:
+		push_error("Unsupported audio format: " + ext)
+		return
+	fileLoader.init_new_map(path, self, parent)
 
 func timing_points():
 	if len(timingPoints) == 0:
@@ -85,8 +92,8 @@ func sort_hit_objects():
 
 func unload_map():
 	mapLoaded = false
+	newEditorMapInit = false
 	tauFilePath = ""
-	loadedSong = null
 	songLength = 0.0
 	leadInBeats = 0.0
 	leadInTime = 0.0

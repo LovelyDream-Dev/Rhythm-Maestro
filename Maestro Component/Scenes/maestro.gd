@@ -10,8 +10,6 @@ signal WHOLE_BEAT
 @export var metronomeLeadInBeats:int
 @export var offset:float = 20.0
 
-var fileLoader:FileLoader
-
 var currentSongPosition:float
 var currentBPM:float
 
@@ -29,10 +27,7 @@ var leadInTime:float
 var leadInBeats:float
 
 func _ready() -> void:
-	fileLoader = FileLoader.new()
 	WHOLE_BEAT.connect(play_metronome)
-	fileLoader.init_new_map_folder(mapData)
-	
 
 func _process(_delta: float) -> void:
 	offset/=1000
