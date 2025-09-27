@@ -36,7 +36,6 @@ var hitWindow:float = 0.0
 func _ready() -> void:
 	parent = get_parent()
 	fileDialog.connect("file_selected", handle_loaded_file)
-	select_audio_file_in_file_system()
 
 func _process(_delta: float) -> void:
 	timing_points()

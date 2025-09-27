@@ -22,5 +22,5 @@ filters = PackedStringArray("*.mp3, *.ogg ; Audio Files")
 [node name="Metronome" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_rynj7")
 
-[node name="MutedSong" type="AudioStreamPlayer" parent="."]
+[node name="MainSong" type="AudioStreamPlayer" parent="."]
 volume_db = -80.0
