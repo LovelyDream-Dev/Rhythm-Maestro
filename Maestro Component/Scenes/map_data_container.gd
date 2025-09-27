@@ -3,7 +3,8 @@ class_name MapDataContainer
 
 @onready var fileDialog:FileDialog = $FileDialog
 
-var fileLoader:FileLoader
+var fileLoader:FileLoader = FileLoader.new()
+var fileSaver:FileSaver = FileSaver.new()
 
 var parent:Maestro
 
@@ -33,16 +34,11 @@ var hpDrainRate:float = 0.0
 var hitWindow:float = 0.0
 
 func _ready() -> void:
-	fileLoader = FileLoader.new()
 	parent = get_parent()
 	fileDialog.connect("file_selected", handle_loaded_file)
 	select_audio_file_in_file_system()
 
 func _process(_delta: float) -> void:
-	if parent.stream:
-		if newEditorMapInit:
-			parent.play()
-			newEditorMapInit = false
 	timing_points()
 
 # --- CUSTOM FUNCTIONS ---
@@ -56,6 +52,7 @@ func handle_loaded_file(path:String):
 		push_error("Unsupported audio format: " + ext)
 		return
 	fileLoader.init_new_map(path, self, parent)
+	fileSaver.save_tau_data(fileLoader.mapFolderPath, self)
 
 func timing_points():
 	if len(timingPoints) == 0:

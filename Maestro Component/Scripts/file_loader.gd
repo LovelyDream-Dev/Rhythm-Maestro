@@ -1,7 +1,11 @@
 extends Node
 class_name FileLoader
 
+var fileSaver:FileSaver = FileSaver.new()
+
 var originalAudioFileName:String
+var mapFolderPath:String
+var AudioFileExtension:String
 
 func load_map(folderPath:String, mapData:MapDataContainer, audioPlayer:AudioStreamPlayer):
 	mapData.unload_map()
@@ -102,11 +106,15 @@ func load_tau_file(filePath:String, folderPath:String, mapData:MapDataContainer,
 
 func init_new_map(songFilePath:String, mapData:MapDataContainer, audioPlayer:AudioStreamPlayer):
 	originalAudioFileName = songFilePath.get_file().get_basename()
-	var ext = songFilePath.get_file().get_extension()
-	mapData.audioFileExtension = ext.to_lower()
+	AudioFileExtension = songFilePath.get_file().get_extension()
+
+	mapData.audioFileExtension = AudioFileExtension.to_lower()
+
 	load_song(songFilePath, mapData, audioPlayer)
+
 	var userPath:String = "D:/Users/Teren/Godot Projects/Rhythm Maestro/Maestro Component"
-	var mapFolderPath:String = userPath.path_join(originalAudioFileName)
+	mapFolderPath = userPath.path_join(originalAudioFileName+AudioFileExtension.to_lower())
+
 	var errFolder := DirAccess.make_dir_absolute(mapFolderPath)
 	if errFolder != OK:
 		if ERR_ALREADY_EXISTS:
@@ -115,7 +123,7 @@ func init_new_map(songFilePath:String, mapData:MapDataContainer, audioPlayer:Aud
 			push_error("Couldn't create map folder at: "+mapFolderPath+".")
 		return
 
-	var newAudioFilePath = mapFolderPath.path_join("audio."+ext)
+	var newAudioFilePath = mapFolderPath.path_join("audio."+AudioFileExtension.to_lower())
 	var errFile := DirAccess.copy_absolute(songFilePath, newAudioFilePath)
 	if errFile != OK:
 		if ERR_ALREADY_EXISTS:
@@ -123,6 +131,10 @@ func init_new_map(songFilePath:String, mapData:MapDataContainer, audioPlayer:Aud
 		else:
 			push_error("Couldn't copy audio file from: "+songFilePath+" to: "+newAudioFilePath+".")
 		return
+
+	var tauFilePath = mapFolderPath.path_join("data.tau")
+	mapData.tauFilePath = tauFilePath
+	fileSaver.save_tau_data(tauFilePath, mapData)
 	mapData.newEditorMapInit = true
 
 func load_song(filePath:String, mapData:MapDataContainer, audioPlayer:AudioStreamPlayer):
